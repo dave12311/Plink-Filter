@@ -22,8 +22,9 @@ private:
 	PedData *firstPed;
 	
 	ofstream pop1, pop2;
+	ofstream dat1, dat2;
 	
-	void search();
+	void search(string &line);
 };
 
 InputData::InputData(PedData* first){
@@ -45,10 +46,10 @@ void InputData::extract(string &line){
 			}else if(column == 2){
 				if(line.at(i) == '1'){
 					population = 1;
-					search();
+					search(line);
 				}else if(line.at(i) == '2'){
 					population = 2;
-					search();
+					search(line);
 				}else{
 					population = 0;
 				}
@@ -59,15 +60,17 @@ void InputData::extract(string &line){
 	}
 }
 
-void InputData::search(){
+void InputData::search(string &line){
 	PedData *pointer = firstPed;
 	
 	while(pointer->next != nullptr){
 		if(pointer->data.compare(0,6,id) == 0){
 			if(population == 1){
 				pop1.write(pointer->data.c_str(), pointer->data.length());
+				dat1.write(line.c_str(), line.length());
 			}else if(population == 2){
 				pop2.write(pointer->data.c_str(), pointer->data.length());
+				dat2.write(line.c_str(), line.length());
 			}
 			break;
 		}
@@ -80,11 +83,15 @@ void InputData::openFiles(char* path){
 	
 	pop1.open(outPath + "POP1.ped", ofstream::trunc | ofstream::out);
 	pop2.open(outPath + "POP2.ped", ofstream::trunc | ofstream::out);
+	dat1.open(outPath + "DAT1.txt", ofstream::trunc | ofstream::out);
+	dat2.open(outPath + "DAT2.txt", ofstream::trunc | ofstream::out);
 }
 
 void InputData::closeFiles(){
 	pop1.close();
 	pop2.close();
+	dat1.close();
+	dat2.close();
 }
 
 
