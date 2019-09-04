@@ -35,6 +35,10 @@ InputData::InputData(PedData* first){
 void InputData::writeColumnNames(std::string& names){
 	dat1.write(names.c_str(),names.length());
 	dat2.write(names.c_str(),names.length());
+	#ifdef _WIN32
+		dat1.write("\n",1);
+		dat2.write("\n",1);
+	#endif
 }
 
 void InputData::extract(string &line){
