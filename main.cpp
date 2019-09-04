@@ -13,6 +13,7 @@ public:
 class InputData{
 public:
 	InputData(PedData *first);
+	void writeColumnNames(string &names);
 	void extract(string &line);
 	void closeFiles();
 	void openFiles(char *path);
@@ -29,6 +30,11 @@ private:
 
 InputData::InputData(PedData* first){
 	firstPed = first;
+}
+
+void InputData::writeColumnNames(std::string& names){
+	dat1.write(names.c_str(),names.length());
+	dat2.write(names.c_str(),names.length());
 }
 
 void InputData::extract(string &line){
@@ -143,13 +149,16 @@ int main(int argc, char *argv[]) {
 		
 		pedfile.close();
 		
-		//Discard first row
+		//Read column names
 		getline(inputfile,line);
 		
 		InputData inputData(pedData_first);
+		inputData.openFiles(outpath);
+		
+		//Write column names
+		inputData.writeColumnNames(line);
 		
 		//Parse input data
-		inputData.openFiles(outpath);
 		while(getline(inputfile,line)){
 			inputData.extract(line);
 		}
