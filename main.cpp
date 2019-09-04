@@ -82,8 +82,8 @@ void InputData::search(string &line){
 				pop2.write(pointer->data.c_str(), pointer->data.length());
 				dat2.write(line.c_str(), line.length());
 				#ifdef _WIN32
-					pop1.write("\n",1);
-					dat1.write("\n",1);
+					pop2.write("\n",1);
+					dat2.write("\n",1);
 				#endif
 			}
 			break;
