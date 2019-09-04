@@ -68,9 +68,17 @@ void InputData::search(string &line){
 			if(population == 1){
 				pop1.write(pointer->data.c_str(), pointer->data.length());
 				dat1.write(line.c_str(), line.length());
+				#ifdef _WIN32
+					pop1.write("\n",1);
+					dat1.write("\n",1);
+				#endif
 			}else if(population == 2){
 				pop2.write(pointer->data.c_str(), pointer->data.length());
 				dat2.write(line.c_str(), line.length());
+				#ifdef _WIN32
+					pop1.write("\n",1);
+					dat1.write("\n",1);
+				#endif
 			}
 			break;
 		}
