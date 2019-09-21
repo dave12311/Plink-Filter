@@ -2,174 +2,95 @@
 #include <fstream>
 #include <string.h>
 
+#define NOT_ENOUGH_ARGUMENTS 1
+#define CANT_OPEN_INPUT 2
+
 using namespace std;
 
-class PedData{
-public:
-	string data;
-	PedData *next = nullptr;
-};
-
-class InputData{
-public:
-	InputData(PedData *first);
-	void writeColumnNames(string &names);
-	void extract(string &line);
-	void closeFiles();
-	void openFiles(char *path);
-private:
-	string id;
-	int population;
-	PedData *firstPed;
-	
-	ofstream pop1, pop2;
-	ofstream dat1, dat2;
-	
-	void search(string &line);
-};
-
-InputData::InputData(PedData* first){
-	firstPed = first;
-}
-
-void InputData::writeColumnNames(std::string& names){
-	dat1.write(names.c_str(),names.length());
-	dat2.write(names.c_str(),names.length());
-	#ifdef _WIN32
-		dat1.write("\n",1);
-		dat2.write("\n",1);
-	#endif
-}
-
-void InputData::extract(string &line){
+char extractPop(string &line){
 	int i = 0;
 	int column = 0;
-	
-	id.clear();
 	
 	while(1){
 		if(line.at(i) == '\t'){
 			column++;
 		}else{
-			if(column == 0){
-				id.append(1,line.at(i));
-			}else if(column == 2){
-				if(line.at(i) == '1'){
-					population = 1;
-					search(line);
-				}else if(line.at(i) == '2'){
-					population = 2;
-					search(line);
-				}else{
-					population = 0;
-				}
-				break;
+			if(column == 2){
+				return line.at(i);
 			}
 		}
 		i++;
 	}
 }
 
-void InputData::search(string &line){
-	PedData *pointer = firstPed;
-	
-	while(pointer->next != nullptr){
-		if(pointer->data.compare(0,6,id) == 0){
-			if(population == 1){
-				pop1.write(pointer->data.c_str(), pointer->data.length());
-				dat1.write(line.c_str(), line.length());
-				#ifdef _WIN32
-					pop1.write("\n",1);
-					dat1.write("\n",1);
-				#endif
-			}else if(population == 2){
-				pop2.write(pointer->data.c_str(), pointer->data.length());
-				dat2.write(line.c_str(), line.length());
-				#ifdef _WIN32
-					pop2.write("\n",1);
-					dat2.write("\n",1);
-				#endif
-			}
-			break;
-		}
-		pointer = pointer->next;
-	}
+void writeLine(string &line, ofstream &stream){
+	stream.write(line.c_str(), line.length());
+	#ifdef _WIN32
+	stream.write('\n',1);
+	#endif
 }
-
-void InputData::openFiles(char* path){
-	string outPath(path);
-	
-	pop1.open(outPath + "POP1.ped", ofstream::trunc | ofstream::out);
-	pop2.open(outPath + "POP2.ped", ofstream::trunc | ofstream::out);
-	dat1.open(outPath + "DAT1.txt", ofstream::trunc | ofstream::out);
-	dat2.open(outPath + "DAT2.txt", ofstream::trunc | ofstream::out);
-}
-
-void InputData::closeFiles(){
-	pop1.close();
-	pop2.close();
-	dat1.close();
-	dat2.close();
-}
-
 
 int main(int argc, char *argv[]) {
-	char *pedpath = nullptr;
-	char *inputpath = nullptr;
-	char *outpath = nullptr;
+	string phenopath;
+	string outpath;
 	
-	PedData *pedData_first = new PedData;
-	PedData *pedData_last = pedData_first;
-	
-	if(argc == 7){
+	//Handle arguments
+	if(argc == 5){
 		for(int i = 1; i < argc; i++){
 			if(!strncmp(argv[i],"-i",2)){
-				inputpath = argv[i+1];
-			}else if(!strncmp(argv[i],"-p",2)){
-				pedpath = argv[i+1];
+				phenopath = argv[i+1];
 			}else if(!strncmp(argv[i],"-o",2)){
 				outpath = argv[i+1];
 			}
 		}
+	}else if(argc == 1 && (!strncmp(argv[0],"-h",2) || !strncmp(argv[0],"--help",6))){
+		cout << "Usage:\n\tplinkfilter -i [input pheno file] -o [output directory]\n";
+		return 0;
 	}else{
 		cerr << "Not enough arguments\n";
+		return NOT_ENOUGH_ARGUMENTS;
 	}
 	
-	if(pedpath != nullptr && inputpath != nullptr && outpath != nullptr){
-		ifstream pedfile;
-		ifstream inputfile;
-		
-		pedfile.open(pedpath);
-		inputfile.open(inputpath);
-		
-		string line;
-		
-		//Read PED file to buffer
-		while(getline(pedfile,line)){
-			pedData_last->data = line;
-			pedData_last->next = new PedData;
-			pedData_last = pedData_last->next;
-		}
-		
-		pedfile.close();
-		
-		//Read column names
-		getline(inputfile,line);
-		
-		InputData inputData(pedData_first);
-		inputData.openFiles(outpath);
-		
-		//Write column names
-		inputData.writeColumnNames(line);
-		
-		//Parse input data
-		while(getline(inputfile,line)){
-			inputData.extract(line);
-		}
-		
-		inputData.closeFiles();
-		
-		inputfile.close();
+	ifstream phenofile;
+	ofstream outfile1, outfile2;
+	
+	phenofile.open(phenopath);
+	
+	//Fix trailing '/' if not present
+	if(outpath.back() != '/'){
+		outpath.append("/");
 	}
+	
+	outfile1.open(outpath + "PHENO1.txt", ofstream::trunc | ofstream::out);
+	outfile2.open(outpath + "PHENO2.txt", ofstream::trunc | ofstream::out);
+	
+	//Check if input file exists and can be read
+	if(phenofile.bad()){
+		cerr << "Can't open input pheno file\n";
+		return CANT_OPEN_INPUT;
+	}
+	
+	string line;
+	
+	//Discard first line
+	getline(phenofile,line);
+	
+	char p;
+	
+	while(getline(phenofile,line)){
+		p = extractPop(line);
+		if(p == '1'){
+			writeLine(line, outfile1);
+		}else if(p == '2'){
+			writeLine(line, outfile2);
+		}
+	}
+	
+	phenofile.close();
+	outfile1.close();
+	outfile2.close();
+	
+	cout << "Finished\n";
+	
 	return 0;
 }
