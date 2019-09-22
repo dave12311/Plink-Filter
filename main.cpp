@@ -26,7 +26,7 @@ char extractPop(string &line){
 void writeLine(string &line, ofstream &stream){
 	stream.write(line.c_str(), line.length());
 	#ifdef _WIN32
-	stream.write('\n',1);
+	stream.write("\n",1);
 	#endif
 }
 
