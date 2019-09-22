@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 				outpath = argv[i+1];
 			}
 		}
-	}else if(argc == 1 && (!strncmp(argv[0],"-h",2) || !strncmp(argv[0],"--help",6))){
+	}else if(argc == 2 && (!strncmp(argv[1],"-h",2) || !strncmp(argv[1],"--help",6))){
 		cout << "Usage:\n\tplinkfilter -i [input pheno file] -o [output directory]\n";
 		return 0;
 	}else{
