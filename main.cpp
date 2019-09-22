@@ -72,8 +72,11 @@ int main(int argc, char *argv[]) {
 	
 	string line;
 	
-	//Discard first line
+	//Duplicate first line
 	getline(phenofile,line);
+	
+	writeLine(line, outfile1);
+	writeLine(line, outfile2);
 	
 	char p;
 	
